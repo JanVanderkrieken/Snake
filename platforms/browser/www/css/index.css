@@ -65,6 +65,9 @@ h1 {
 .snake{
     background-color: blue;
 }
+.snakefood{
+    background-color: purple;
+}
 
 .food{
     background-color: red;
