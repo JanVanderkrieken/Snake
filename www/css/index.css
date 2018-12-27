@@ -33,8 +33,12 @@ body {
     width:100%;
 }
 
-table{
+/*table{
     margin: 0px;
+}*/
+
+#tableheader {
+	margin-bottom : -3px;
 }
 
 /* Landscape layout (with min-width) */
@@ -65,6 +69,9 @@ input {
     background-color: black;
 }
 
+.snakehead {
+	background-color: green;
+}
 .snake{
     background-color: blue;
 }

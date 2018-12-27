@@ -1,7 +1,9 @@
 $(document).ready(function () {
 
 
-
+    //screen.lockOrientation("portrait");
+    //screen.msLockOrientation("portrait");
+    screen.orientation.lock("portrait");
     StartTheGame();
 });
 
@@ -31,13 +33,15 @@ function StartTheGame() {
         }
     }
     //playMatrix[4][10] = 'food';
-
+    if (isStarted) {
+        return;
+    }
     Tick(function () {
-        //console.log('1');
+        ////console.log('1');
         if (isDead) {
             return;
         }
-            
+
     });
 
 }
@@ -69,23 +73,23 @@ var countCols;
 var playMatrix = [];
 var amountOfTouches = 0;
 var scaling = false;
-$(document).on('touchstart', function (evt) {
+window.addEventListener('touchstart', function (evt) {
     //evt.preventDefault();
     //console.log(evt);
     xDown = evt.touches[0].clientX;
     yDown = evt.touches[0].clientY;
-    //console.log("tap tap tap");
-    if (evt.originalEvent.touches.length == 2) {
+    ////console.log("tap tap tap");
+    if (evt.touches.length == 2) {
         X1 = evt.touches[0].clientX;
         X2 = evt.touches[1].clientX;
         Y1 = evt.touches[0].clientY;
         Y2 = evt.touches[1].clientY;
-        //console.log('X1 = ' + X1);
-        //console.log('Y1 = ' + Y1);
+        ////console.log('X1 = ' + X1);
+        ////console.log('Y1 = ' + Y1);
         scaling = true;
         amountOfTouches = 2;
-        // console.log('X2 = ' + X2);
-        // console.log('Y2 = ' + Y2);
+        // //console.log('X2 = ' + X2);
+        // //console.log('Y2 = ' + Y2);
 
     }
 });
@@ -100,23 +104,26 @@ var X1End = 0;
 var Y1End = 0;
 var Y2End = 0;
 var X2End = 0;
-$(document).on('touchend', function (evt) {
+
+
+window.addEventListener('touchend', function (evt) {
+    //evt.preventDefault();
     //if(evt.originalEvent.touches.length==2){
     //if(X1<evt.touches[0].clientX && X2 > evt.touches[1].clientX){
-    //console.log('touchend X1 = ');
-    //console.log(evt);
-    /*console.log('Y1 = ' + evt.touches[0].clientY);
-    console.log('X2 = ' + evt.touches[1].clientX);
-    console.log('Y2 = ' + evt.touches[1].clientY);
+    ////console.log('touchend X1 = ');
+    ////console.log(evt);
+    /*//console.log('Y1 = ' + evt.touches[0].clientY);
+    //console.log('X2 = ' + evt.touches[1].clientX);
+    //console.log('Y2 = ' + evt.touches[1].clientY);
     */
     //}
     //}
-    //console.log(amountOfTouches);
+    ////console.log(amountOfTouches);
     if (scaling) {
         //var dist = Math.hypot(
         //evt.touches[0].pageX - evt.touches[1].pageX,
         //evt.touches[0].pageY - evt.touches[1].pageY);
-        //console.log(dist);
+        ////console.log(dist);
         //scaling = false;
         //amountOfTouches--;
         if (X1End === 0 && Y1End === 0) {
@@ -140,22 +147,28 @@ function getScale() {
     if (!isStarted) {
         if (dist1 > dist2) {
             difficulty -= 0.25;
+            if (difficulty <= 0.25) {
+                difficulty = 0.25;
+            }
         } else if (dist2 > dist1) {
             difficulty += 0.25;
+            if (difficulty >= 8) {
+                difficulty = 8;
+            }
         }
-        console.log('dist');
-        console.log(dist1 + ' ' + dist2);
+        ////console.log('dist');
+        ////console.log(dist1 + ' ' + dist2);
 
         dist1 = 0;
         dist2 = 0;
     }
 };
-$(document).on('touchmove', function (evt) {
-    if (!xDown || !yDown) {
+window.addEventListener('touchmove', function (evt) {
+    if (!xDown || !yDown || isPaused) {
         return;
     }
-    //console.log("touchmove");
-    //console.log(evt);
+    ////console.log("touchmove");
+    ////console.log(evt);
     /*if(evt.originalEvent.touches.length==2){
         var X1 = evt.touches[0].clientX;
         var X2 = evt.touches[1].clientX;
@@ -169,84 +182,84 @@ $(document).on('touchmove', function (evt) {
 
     }*/
 
-        //evt.preventDefault();
-        var xUp = evt.touches[0].clientX;
-        var yUp = evt.touches[0].clientY;
-        var xDiff = xDown - xUp;
-        var yDiff = yDown - yUp;
-        prevDirection = direction;
+    //evt.preventDefault();
+    var xUp = evt.touches[0].clientX;
+    var yUp = evt.touches[0].clientY;
+    var xDiff = xDown - xUp;
+    var yDiff = yDown - yUp;
+    prevDirection = direction;
 
-        if (Math.abs(xDiff) > Math.abs(yDiff)) {/*most significant*/
-            if (direction == "up" || direction == "down") {
-                if (xDiff > 0) {
-                    /* left swipe */
-                    direction = "left";
-                } else {
-                    /* right swipe */
-                    direction = "right";
-                }
-                //console.log("cols: " +countCols);
+    if (Math.abs(xDiff) > Math.abs(yDiff)) {/*most significant*/
+        if (direction == "up" || direction == "down") {
+            if (xDiff > 0) {
+                /* left swipe */
+                direction = "left";
+            } else {
+                /* right swipe */
+                direction = "right";
             }
-        } else if (Math.abs(xDiff) < Math.abs(yDiff)) {
-            if (direction == "left" || direction == "right") {
-
-                if (yDiff > 0) {
-                    /* up swipe */
-                    direction = "up";
-                } else {
-                    /* down swipe */
-                    direction = "down";
-                }
-                //console.log("rows: " +countRows); 
-            }
-        } else {
-            if (yDiff > 0 && xDiff > 0) {
-                //swipe left-up
-                if (direction == "up" || direction == "down") {
-                    direction = "left";
-                } else {
-                    direction = "up";
-                }
-            } else if (xDiff > 0 && yDiff < 0) {
-                if (direction == "up" || direction == "down") {
-                    direction = "left";
-                } else {
-                    direction = "up";
-                }
-                //swipe left-down
-            } else if (xDiff < 0 && yDiff > 0) {
-                if (direction == "up" || direction == "down") {
-                    direction = "right";
-                } else {
-                    direction = "down";
-                }
-                //swipe right-up
-            } else if (xDiff < 0 && yDiff < 0) {
-                if (direction == "up" || direction == "down") {
-                    direction = "right";
-                } else {
-                    direction = "down";
-                }
-                //swipe right-down
-            }
+            ////console.log("cols: " +countCols);
         }
-        /* reset values */
-        // deviceready Event Handler
-        //
-        // The scope of 'this' is the event. In order to call the 'receivedEvent'
-        // function, we must explicitly call 'app.receivedEvent(...);'
+    } else if (Math.abs(xDiff) < Math.abs(yDiff)) {
+        if (direction == "left" || direction == "right") {
 
-        //console.log(playMatrix);
-        //console.log(direction);
+            if (yDiff > 0) {
+                /* up swipe */
+                direction = "up";
+            } else {
+                /* down swipe */
+                direction = "down";
+            }
+            ////console.log("rows: " +countRows); 
+        }
+    } else {
+        if (yDiff > 0 && xDiff > 0) {
+            //swipe left-up
+            if (direction == "up" || direction == "down") {
+                direction = "left";
+            } else {
+                direction = "up";
+            }
+        } else if (xDiff > 0 && yDiff < 0) {
+            if (direction == "up" || direction == "down") {
+                direction = "left";
+            } else {
+                direction = "up";
+            }
+            //swipe left-down
+        } else if (xDiff < 0 && yDiff > 0) {
+            if (direction == "up" || direction == "down") {
+                direction = "right";
+            } else {
+                direction = "down";
+            }
+            //swipe right-up
+        } else if (xDiff < 0 && yDiff < 0) {
+            if (direction == "up" || direction == "down") {
+                direction = "right";
+            } else {
+                direction = "down";
+            }
+            //swipe right-down
+        }
+    }
+    /* reset values */
+    // deviceready Event Handler
+    //
+    // The scope of 'this' is the event. In order to call the 'receivedEvent'
+    // function, we must explicitly call 'app.receivedEvent(...);'
 
-        //paintTheField();
+    ////console.log(playMatrix);
+    ////console.log(direction);
+
+    //paintTheField();
     //if (evt.originalEvent.touches.length === 2 && !isStarted) {
     //    difficulty += 0.25;
-    //    console.log(difficulty);
+    //    //console.log(difficulty);
     //    paintTheField();
     //}
-    if (!isStarted && evt.originalEvent.touches.length === 1) {
-        //console.log('3');
+    if (!isStarted && evt.touches.length === 1) {
+        ////console.log('3');
     }
     xDown = null;
     yDown = null;
@@ -264,14 +277,17 @@ var score = 0;
 
 
 function paintTheField() {
+    if (isPaused) {
+        return;
+    }
     if (tableEl.hasChildNodes()) {
         tableEl.innerHTML = '';
     }
     var htmlString = '';
     if (!isStarted && !isDead) {
-        htmlString = '<div>Start the game with a tap on the button</br>\'zoom\' out to lower the difficulty, \'zoom\' in to raise the difficulty</br> swipe in the direction you want to go</br> NO RETURNS</div>'
+        htmlString = '<div>Start the game with a tap on the button</br>\'zoom\' out to lower the difficulty, \'zoom\' in to raise the difficulty</br>min difficulty = 0.25, max difficulty = 8.0</br> swipe in the direction you want to go</br> NO RETURNS</div>'
     } else {
-        //console.log('is started' + isStarted);
+        ////console.log('is started' + isStarted);
         if (isDead) {
             htmlString = '<div>You\'re <strong>dead</strong>, you can restart with a tap on the button</div>';
             isStarted = false;
@@ -295,6 +311,9 @@ function paintTheField() {
                         case 'snake':
                             htmlString += 'class = "snake"';
                             break;
+                        case 'snakehead':
+                            htmlString += 'class = "snakehead"';
+                            break;
                         default:
 
                             break;
@@ -304,20 +323,23 @@ function paintTheField() {
                 htmlString += '</tr>';
             };
         }
-        //console.log(htmlString);
+        ////console.log(htmlString);
     }
     tableEl.innerHTML = htmlString;
     scoreEl.innerHTML = 'Your score is: ' + score + '</br> The difficulty is: ' + difficulty.toFixed(2);
 
 };
-
+var isPaused = false;
 $('input').on('click', function (evt) {
-    console.log("is started: " + isStarted);
-    console.log(direction);
-    console.log("is dead " + isDead);
+    ////console.log("is started: " + isStarted);
+    ////console.log(direction);
+    ////console.log("is dead " + isDead);
     if (!isStarted) {
+        //console.clear();
+        isPaused = false;
         isStarted = true;
-        direction = 'right';
+        //direction = 'right';
+        $(this).val('Pause');
         if (isDead) {
 
             isDead = false;
@@ -334,6 +356,10 @@ $('input').on('click', function (evt) {
 
         });
 
+    } else {
+        isPaused = true;
+        isStarted = false;
+        $(this).val('Start');
     }
 });
 
@@ -357,7 +383,7 @@ function setDirectionMove(direc) {
     };
 
 }
-var difficulty = 1.0;
+var difficulty = 8.0;
 var directionMove = '0,0';
 
 function moveSnake() {
@@ -365,8 +391,8 @@ function moveSnake() {
         return;
     }
     setDirectionMove(direction);
-    //console.log(directionMove);
-    //console.log('first snake is ' + snakeArray.toString());
+    ////console.log(directionMove);
+    ////console.log('first snake is ' + snakeArray.toString());
     var prevPos = '';
     var secondPos = snakeArray[1];
     /*if(getFirstPos(snakeArray[0]) == getFirstPos(secondPos)){
@@ -384,7 +410,7 @@ function moveSnake() {
     for (var i = snakeArray.length - 1; i > 0; i--) {
         prevPos = snakeArray[i];
         snakeArray[i] = snakeArray[i - 1];
-        //console.log(prevPos);
+        ////console.log(prevPos);
     }
     prevPos = snakeArray[0];
     snakeArray[0] = addPositon(snakeArray[0], directionMove, secondPos);
@@ -394,7 +420,7 @@ function moveSnake() {
         snakeArray[0] = addPositon(prevPos, directionMove, secondPos);
 
     }
-    //console.log('snake is ' + snakeArray.toString());
+    ////console.log('snake is ' + snakeArray.toString());
     EatMe();
 }
 function getFirstPos(Pos) {
@@ -411,7 +437,7 @@ function addPositon(origPos, speed, secondPos) {
     origX += speedX;
     orgiY += speedY;
 
-    //console.log("OrigPos " + origX);
+    ////console.log("OrigPos " + origX);
 
     return origX + ',' + orgiY;
 }
@@ -434,14 +460,20 @@ function reDoMatrix() {
                     /* check the cell from playMatrix with every piece in snkakeArray */
                     if (X == i && Y == j) {
                         playMatrix[i][j] = 'snake';
-                        var Xfood = getFirstPos(prevFood);
-                        var Yfood = getSecondPos(prevFood);
+                        for (var l = 0; l < prevFoodArr.length; l++) {
+                            var Xfood = getFirstPos(prevFoodArr[l]);
+                            var Yfood = getSecondPos(prevFoodArr[l]);
 
-                        if (i == Xfood && j == Yfood) {
-                            playMatrix[i][j] = 'snakefood';
-                            if (k == snakeArray.length - 1) {
-                                prevFood = '0,0';
+                            if (i == Xfood && j == Yfood) {
+                                playMatrix[i][j] = 'snakefood';
+                                if (k == snakeArray.length - 1) {
+                                    //prevFoodArr[l] = '0,0';
+                                    prevFoodArr.splice(l, 1);
+                                }
                             }
+                        }
+                        if (k === 0) {
+                            playMatrix[i][j] = 'snakehead';
                         }
 
                     }
@@ -459,6 +491,8 @@ function EatMe() {
 
         if (snakeArray[0] == snakeArray[i]) {
             isDead = true;
+            $('input').val('Start');
+
         }
     }
 }
@@ -466,13 +500,15 @@ function paintSnake() {
     for (var i = 0; i < snakeArray.length; i++) {
         var X = getFirstPos(snakeArray[i]);
         var Y = getSecondPos(snakeArray[i]);
-        //console.log('X = '+ X + 'Y=' +Y);
+        ////console.log('X = '+ X + 'Y=' +Y);
 
         if (playMatrix[X][Y] != "wall") {
             //playMatrix[X][Y] = 'snake';
         } else {
             isDead = true;
-            //console.log("I be deeth");
+            $('input').val('Start');
+
+            ////console.log("I be deeth");
         }
     }
 }
@@ -480,26 +516,26 @@ var isDead = false;
 var isStarted = false;
 var secondsNow = 0;
 function Tick(callback) {
-    var hour = new Date().getHours();
-    var minutes = new Date().getMinutes();
-    var seconds = new Date().getSeconds();
-    var ms = new Date().getMilliseconds();
-    console.log(hour + ':' + minutes + ':' + seconds + ':' + ms);
+    //var hour = new Date().getHours();
+    //var minutes = new Date().getMinutes();
+    //var seconds = new Date().getSeconds();
+    //var ms = new Date().getMilliseconds();
+    ////console.log(hour + ':' + minutes + ':' + seconds + ':' + ms);
     if (isDead) {
-        //console.log("Ya deeth man");
+        ////console.log("Ya deeth man");
         return;
     }
     if (!isStarted) {
-        //console.log("Ima not running");
+        ////console.log("Ima not running");
         paintTheField()
         //Tick();
         return;
     }
     secondsNow = new Date().getSeconds();
-    //console.log(secondsNow);
+    ////console.log(secondsNow);
     var timeDivDifficulty = 1000 / difficulty;
     setTimeout(function () {
-        if (isDead) {
+        if (isDead || isPaused) {
             paintTheField();
             callback();
             return;
@@ -507,19 +543,19 @@ function Tick(callback) {
         moveSnake();
         Eat();
         reDoMatrix();
-    console.log('time diff:' + timeDivDifficulty);
+        ////console.log('time diff:' + timeDivDifficulty);
 
         paintTheField();
-        //console.log('2');
+        ////console.log('2');
         callback();
-        if (isDead) {
+        if (isDead || isPaused) {
 
             paintTheField();
             callback();
             return;
         }
 
-        if (!isDead) {
+        if (!isDead && !isPaused) {
             Tick(function () { });
         }
     }, timeDivDifficulty);
@@ -527,13 +563,30 @@ function Tick(callback) {
 
 var food = '4,10';
 var prevFood = '0,0';
+var prevFoodArr = [];
 function setFood() {
-    var X = getRndInteger(0, countCols);
-    var Y = getRndInteger(0, countRows);
-    if (playMatrix[X][Y] == '') {
-        food = X + ',' + Y;
-    } else {
-        setFood();
+    var X = getRndInteger(0, countCols - 1);
+    var Y = getRndInteger(0, countRows - 1);
+    //console.log("setFood X: " + X + " Y: " + Y);
+    try {
+        if (playMatrix[X][Y] == '') {
+            food = X + ',' + Y;
+        } else {
+            setFood();
+        }
+    }
+    catch (exception) {
+        //console.log("something happend in setfood");
+        //console.log(exception);
+        //console.log(playMatrix[X].length);
+        StartTheGame();
+
+        if (playMatrix[X][Y] == '') {
+            food = X + ',' + Y;
+        } else {
+            setFood();
+        }
+
     }
 }
 
@@ -543,14 +596,20 @@ function getRndInteger(min, max) {
 
 function Eat() {
     if (snakeArray[0] == food) {
-        prevFood = food;
+        prevFoodArr.push(food);
         var X = getFirstPos(food);
         var Y = getSecondPos(food);
-        if (playMatrix.length <= 0)
-        {
+        //console.log('x: ' + X + 'y: ' + Y);
+        if (playMatrix.length <= 0) {
             return;
         }
-        playMatrix[X][Y] = '';
+        try {
+            playMatrix[X][Y] = '';
+        }
+        catch (exception) {
+            //console.log("something happend in Eat");
+            StartTheGame();
+        }
         score += difficulty;
         snakeArray.unshift(food);
         setFood();
