@@ -3,18 +3,25 @@ $(document).ready(function () {
 
     //screen.lockOrientation("portrait");
     //screen.msLockOrientation("portrait");
-    screen.orientation.lock("portrait");
-    StartTheGame();
+    //screen.orientation.lock("portrait");
+    //StartTheGame();
+    paintTheField();
 });
 
 
 function StartTheGame() {
-
     wWidth = window.innerWidth;
-    wHeight = window.innerHeight;
+    wHeight = window.innerHeight - 34;
     borderWidth = ((wWidth - blockWidth * 2) % blockWidth) + blockWidth * 2;
-    borderHeight = ((wHeight - blockWidth * 2) % blockWidth) + blockWidth * 6;
-    countRows = (wWidth - borderWidth) / blockWidth;
+    console.log(screen.orientation.type);
+    if (screen.orientation.type === "portrait-secondary" || screen.orientation.type === "portrait-primary") {
+
+
+        borderHeight = ((wHeight - blockWidth * 2) % blockWidth) + blockWidth * 4;
+    } else if (screen.orientation.type === "landscape-secondary" || screen.orientation.type === "landscape-primary") {
+        borderHeight = ((wHeight - blockWidth * 2) % blockWidth) + blockWidth * 1;
+    }
+    countRows = (wWidth - borderWidth) / blockWidth - 1;
     countCols = (wHeight - borderHeight) / blockWidth - 1;
     for (var i = 0; i < countCols; i++) {
         playMatrix[i] = [];
@@ -32,6 +39,9 @@ function StartTheGame() {
             }
         }
     }
+    if (!isPaused) {
+        setFood();
+    }
     //playMatrix[4][10] = 'food';
     if (isStarted) {
         return;
@@ -41,7 +51,7 @@ function StartTheGame() {
         if (isDead) {
             return;
         }
-
+        return;
     });
 
 }
@@ -78,7 +88,9 @@ window.addEventListener('touchstart', function (evt) {
     //console.log(evt);
     xDown = evt.touches[0].clientX;
     yDown = evt.touches[0].clientY;
-    ////console.log("tap tap tap");
+    //console.log("tap tap tap");
+    //console.log(evt.touches.length);
+    //console.log(direction);
     if (evt.touches.length == 2) {
         X1 = evt.touches[0].clientX;
         X2 = evt.touches[1].clientX;
@@ -91,6 +103,8 @@ window.addEventListener('touchstart', function (evt) {
         // //console.log('X2 = ' + X2);
         // //console.log('Y2 = ' + Y2);
 
+    } else {
+        scaling = false;
     }
 });
 //document.addEventListener('deviceready', this.onDeviceReady, false);
@@ -152,8 +166,8 @@ function getScale() {
             }
         } else if (dist2 > dist1) {
             difficulty += 0.25;
-            if (difficulty >= 8) {
-                difficulty = 8;
+            if (difficulty >= 5) {
+                difficulty = 5;
             }
         }
         ////console.log('dist');
@@ -164,6 +178,7 @@ function getScale() {
     }
 };
 window.addEventListener('touchmove', function (evt) {
+    //console.log("Move move move")
     if (!xDown || !yDown || isPaused) {
         return;
     }
@@ -258,13 +273,12 @@ window.addEventListener('touchmove', function (evt) {
     //    //console.log(difficulty);
     //    paintTheField();
     //}
-    if (!isStarted && evt.touches.length === 1) {
-        ////console.log('3');
-    }
     xDown = null;
     yDown = null;
 
 });
+
+
 var tableEl = document.getElementById('screen');
 var scoreEl = document.getElementById('score');
 var xDown = null;
@@ -282,10 +296,11 @@ function paintTheField() {
     }
     if (tableEl.hasChildNodes()) {
         tableEl.innerHTML = '';
+
     }
     var htmlString = '';
     if (!isStarted && !isDead) {
-        htmlString = '<div>Start the game with a tap on the button</br>\'zoom\' out to lower the difficulty, \'zoom\' in to raise the difficulty</br>min difficulty = 0.25, max difficulty = 8.0</br> swipe in the direction you want to go</br> NO RETURNS</div>'
+        htmlString = '<div>Start the game with a tap on the button</br>\'zoom\' out to lower the difficulty, \'zoom\' in to raise the difficulty</br>min difficulty = 0.25, max difficulty = 5.0</br> swipe in the direction you want to go</br> NO RETURNS</div>'
     } else {
         ////console.log('is started' + isStarted);
         if (isDead) {
@@ -331,32 +346,38 @@ function paintTheField() {
 };
 var isPaused = false;
 $('input').on('click', function (evt) {
-    ////console.log("is started: " + isStarted);
+    console.log("is started: " + isStarted);
     ////console.log(direction);
     ////console.log("is dead " + isDead);
     if (!isStarted) {
-        //console.clear();
+        screen.orientation.lock(screen.orientation.type);
+        StartTheGame();
+        //console.clear(); 
+        if (!isPaused) {
+            direction = 'right';
+
+        }
         isPaused = false;
         isStarted = true;
-        //direction = 'right';
+       
         $(this).val('Pause');
         if (isDead) {
 
             isDead = false;
             snakeArray = ['4,6', '4,5', '4,4'];
-            food = '4,10';
+            //food = '4,10';
+            setFood();
             score = 0;
             direction = 'right';
             //return;
         }
-        timeDivDifficulty = 1000 / difficulty;
 
         Tick(function () {
-            timeDivDifficulty = 1000 / difficulty;
-
+            return;
         });
 
     } else {
+
         isPaused = true;
         isStarted = false;
         $(this).val('Start');
@@ -383,7 +404,7 @@ function setDirectionMove(direc) {
     };
 
 }
-var difficulty = 8.0;
+var difficulty = 3.0;
 var directionMove = '0,0';
 
 function moveSnake() {
@@ -441,7 +462,7 @@ function addPositon(origPos, speed, secondPos) {
 
     return origX + ',' + orgiY;
 }
-var counter = 0;
+var counterEmptyCells = 0;
 function reDoMatrix() {
     /*if(counter < snakeArray.length){
         if(playMatrix[X][Y] != "wall"){
@@ -450,6 +471,7 @@ function reDoMatrix() {
         counter++;
         reDoMatrix()
     }*/
+    counterEmptyCells = (countCols - 2) * (countRows - 2);
     for (var i = 0; i < countCols; i++) {
         for (var j = 0; j < countRows; j++) {
             if (playMatrix[i][j] != "wall" /*&& playMatrix[i][j] != 'food'*/) {
@@ -459,6 +481,7 @@ function reDoMatrix() {
                     var Y = getSecondPos(snakeArray[k]);
                     /* check the cell from playMatrix with every piece in snkakeArray */
                     if (X == i && Y == j) {
+                        counterEmptyCells--;
                         playMatrix[i][j] = 'snake';
                         for (var l = 0; l < prevFoodArr.length; l++) {
                             var Xfood = getFirstPos(prevFoodArr[l]);
@@ -491,6 +514,7 @@ function EatMe() {
 
         if (snakeArray[0] == snakeArray[i]) {
             isDead = true;
+            screen.orientation.unlock();
             $('input').val('Start');
 
         }
@@ -506,6 +530,7 @@ function paintSnake() {
             //playMatrix[X][Y] = 'snake';
         } else {
             isDead = true;
+            screen.orientation.unlock();
             $('input').val('Start');
 
             ////console.log("I be deeth");
@@ -516,18 +541,19 @@ var isDead = false;
 var isStarted = false;
 var secondsNow = 0;
 function Tick(callback) {
-    //var hour = new Date().getHours();
-    //var minutes = new Date().getMinutes();
-    //var seconds = new Date().getSeconds();
-    //var ms = new Date().getMilliseconds();
-    ////console.log(hour + ':' + minutes + ':' + seconds + ':' + ms);
+   // var hour = new Date().getHours();
+   // var minutes = new Date().getMinutes();
+   // var seconds = new Date().getSeconds();
+   // var ms = new Date().getMilliseconds();
+   // console.log(hour + ':' + minutes + ':' + seconds + ':' + ms);
     if (isDead) {
         ////console.log("Ya deeth man");
         return;
     }
     if (!isStarted) {
         ////console.log("Ima not running");
-        paintTheField()
+
+        paintTheField();
         //Tick();
         return;
     }
@@ -555,18 +581,23 @@ function Tick(callback) {
             return;
         }
 
-        if (!isDead && !isPaused) {
-            Tick(function () { });
+        if (!isDead && !isPaused && !IsFull) {
+            Tick(function () { return; });
         }
     }, timeDivDifficulty);
 }
 
-var food = '4,10';
+var food = '0,0';
 var prevFood = '0,0';
 var prevFoodArr = [];
+var IsFull = false;
 function setFood() {
-    var X = getRndInteger(0, countCols - 1);
-    var Y = getRndInteger(0, countRows - 1);
+    if (counterEmptyCells < 1 && isStarted) {
+        IsFull = true;
+        return;
+    }
+    var X = getRndInteger(0, countCols - 2);
+    var Y = getRndInteger(0, countRows - 2);
     //console.log("setFood X: " + X + " Y: " + Y);
     try {
         if (playMatrix[X][Y] == '') {
@@ -576,16 +607,11 @@ function setFood() {
         }
     }
     catch (exception) {
-        //console.log("something happend in setfood");
-        //console.log(exception);
+        console.log("something happend in setfood");
+        console.log(exception);
         //console.log(playMatrix[X].length);
-        StartTheGame();
+        setFood();
 
-        if (playMatrix[X][Y] == '') {
-            food = X + ',' + Y;
-        } else {
-            setFood();
-        }
 
     }
 }
@@ -607,8 +633,8 @@ function Eat() {
             playMatrix[X][Y] = '';
         }
         catch (exception) {
-            //console.log("something happend in Eat");
-            StartTheGame();
+            console.log("something happend in Eat");
+            setFood();
         }
         score += difficulty;
         snakeArray.unshift(food);

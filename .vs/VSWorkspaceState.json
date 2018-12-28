@@ -3,8 +3,12 @@
     "",
     "\\www",
     "\\www\\css",
-    "\\www\\js"
+    "\\www\\js",
+    "\\www\\res\\icon",
+    "\\www\\spec",
+    "\\www\\spec\\lib",
+    "\\www\\spec\\lib\\jasmine-1.2.0"
   ],
-  "SelectedNode": "\\www\\index.html",
+  "SelectedNode": "\\www\\css\\index.css",
   "PreviewInSolutionExplorer": false
 }
