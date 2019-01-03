@@ -5,22 +5,31 @@ $(document).ready(function () {
     //screen.msLockOrientation("portrait");
     //screen.orientation.lock("portrait");
     //StartTheGame();
+    isMobile = /Mobi|Android/i.test(navigator.userAgent);
     paintTheField();
 });
 
+var isMobile = false;
 
 function StartTheGame() {
     wWidth = window.innerWidth;
     wHeight = window.innerHeight - 34;
     borderWidth = ((wWidth - blockWidth * 2) % blockWidth) + blockWidth * 2;
-    console.log(screen.orientation.type);
-    if (screen.orientation.type === "portrait-secondary" || screen.orientation.type === "portrait-primary") {
+    //console.log(screen.orientation.type);
+    if ((screen.orientation.type === "portrait-secondary" || screen.orientation.type === "portrait-primary") && isMobile) {
 
 
         borderHeight = ((wHeight - blockWidth * 2) % blockWidth) + blockWidth * 4;
-    } else if (screen.orientation.type === "landscape-secondary" || screen.orientation.type === "landscape-primary") {
+    } else if ((screen.orientation.type === "landscape-secondary" || screen.orientation.type === "landscape-primary") && isMobile) {
         borderHeight = ((wHeight - blockWidth * 2) % blockWidth) + blockWidth * 1;
+    } else if (!isMobile) {
+        borderHeight = ((wHeight - blockWidth * 2) % blockWidth) + blockWidth * 6;
+
     }
+    //console.log(window);
+    //console.log(wHeight);
+    //console.log(borderHeight);
+    //console.log(screen.orientation.type);
     countRows = (wWidth - borderWidth) / blockWidth - 1;
     countCols = (wHeight - borderHeight) / blockWidth - 1;
     for (var i = 0; i < countCols; i++) {
@@ -300,7 +309,11 @@ function paintTheField() {
     }
     var htmlString = '';
     if (!isStarted && !isDead) {
-        htmlString = '<div>Start the game with a tap on the button</br>\'zoom\' out to lower the difficulty, \'zoom\' in to raise the difficulty</br>min difficulty = 0.25, max difficulty = 5.0</br> swipe in the direction you want to go</br> NO RETURNS</div>'
+        if (isMobile) {
+            htmlString = '<div>Start the game with a tap on the button</br>\'zoom\' out to lower the difficulty, \'zoom\' in to raise the difficulty</br>min difficulty = 0.25, max difficulty = 5.0</br> swipe in the direction you want to go</br> NO RETURNS</div>'
+        } else {
+            htmlString = '<div>Start the game with a click on the button</br>Use the arrows up and down to increase or decrease the difficulty</br>You can use spacebar or enter to start/pause the game</br>min difficulty = 0.25, max difficulty = 10.0</br> use the arrows in the direction you want to go</br> NO RETURNS</div>'
+        }
     } else {
         ////console.log('is started' + isStarted);
         if (isDead) {
@@ -344,9 +357,63 @@ function paintTheField() {
     scoreEl.innerHTML = 'Your score is: ' + score + '</br> The difficulty is: ' + difficulty.toFixed(2);
 
 };
+
+window.addEventListener('keydown', function (evt) {
+    var prevDirectionTemp = prevDirection;
+    prevDirection = direction;
+    //console.log(evt.key);
+    switch (evt.key) {
+        case "ArrowUp":
+            if (direction !== 'down') {
+                direction = 'up';
+            }
+            if (!isStarted && !isPaused) {
+                difficulty += 0.25;
+                if (difficulty >= 10) {
+                    difficulty = 10;
+
+                }
+                paintTheField();
+            }
+            break;
+        case "ArrowDown":
+            if (direction !== 'up') {
+                direction = 'down';
+            }
+            if (!isStarted && !isPaused) {
+                difficulty -= 0.25;
+                if (difficulty <= 0.25) {
+                    difficulty = 0.25;
+
+                }
+                paintTheField();
+            }
+            break;
+        case "ArrowLeft":
+            if (direction !== 'right') {
+                direction = 'left';
+            }
+            break;
+        case "ArrowRight":
+            if (direction !== 'left') {
+                direction = 'right';
+            }
+            break;
+        case "Enter":
+        case " ":
+            buttonClick();
+        default:
+            prevDirection = prevDirectionTemp;
+            return;
+            break;
+    }
+});
+
 var isPaused = false;
-$('input').on('click', function (evt) {
-    console.log("is started: " + isStarted);
+$('input').on('click', buttonClick);
+function buttonClick() {
+    $('input').blur();
+    //console.log("is started: " + isStarted);
     ////console.log(direction);
     ////console.log("is dead " + isDead);
     if (!isStarted) {
@@ -359,13 +426,14 @@ $('input').on('click', function (evt) {
         }
         isPaused = false;
         isStarted = true;
-       
-        $(this).val('Pause');
+
+        $('input').val('Pause');
         if (isDead) {
 
             isDead = false;
             snakeArray = ['4,6', '4,5', '4,4'];
             //food = '4,10';
+            prevFoodArr = [];
             setFood();
             score = 0;
             direction = 'right';
@@ -380,9 +448,9 @@ $('input').on('click', function (evt) {
 
         isPaused = true;
         isStarted = false;
-        $(this).val('Start');
+        $('input').val('Start');
     }
-});
+};
 
 function setDirectionMove(direc) {
     switch (direc) {
@@ -471,23 +539,35 @@ function reDoMatrix() {
         counter++;
         reDoMatrix()
     }*/
+    var Xfood = getFirstPos(food);
+    var Yfood = getSecondPos(food);
+    playMatrix[Xfood][Yfood] = 'food';
+
     counterEmptyCells = (countCols - 2) * (countRows - 2);
     for (var i = 0; i < countCols; i++) {
         for (var j = 0; j < countRows; j++) {
-            if (playMatrix[i][j] != "wall" /*&& playMatrix[i][j] != 'food'*/) {
+            if (playMatrix[i][j] != "wall" && playMatrix[i][j] != 'food') {
                 playMatrix[i][j] = '';
                 for (var k = 0; k < snakeArray.length; k++) {
                     var X = getFirstPos(snakeArray[k]);
                     var Y = getSecondPos(snakeArray[k]);
+                    if (X === Xfood && Y === Yfood) {
+                        playMatrix[Xfood][Yfood] = 'snake';
+                        setFood();
+                        Xfood = getFirstPos(food);
+                        Yfood = getSecondPos(food);
+                        playMatrix[Xfood][Yfood] = 'food';
+
+                    }
                     /* check the cell from playMatrix with every piece in snkakeArray */
                     if (X == i && Y == j) {
                         counterEmptyCells--;
                         playMatrix[i][j] = 'snake';
                         for (var l = 0; l < prevFoodArr.length; l++) {
-                            var Xfood = getFirstPos(prevFoodArr[l]);
-                            var Yfood = getSecondPos(prevFoodArr[l]);
+                            var XfoodPrev = getFirstPos(prevFoodArr[l]);
+                            var YfoodPrev = getSecondPos(prevFoodArr[l]);
 
-                            if (i == Xfood && j == Yfood) {
+                            if (i == XfoodPrev && j == YfoodPrev) {
                                 playMatrix[i][j] = 'snakefood';
                                 if (k == snakeArray.length - 1) {
                                     //prevFoodArr[l] = '0,0';
@@ -504,9 +584,6 @@ function reDoMatrix() {
             }
         }
     }
-    var Xfood = getFirstPos(food);
-    var Yfood = getSecondPos(food);
-    playMatrix[Xfood][Yfood] = 'food';
 }
 function EatMe() {
     for (var i = 1; i < snakeArray.length; i++) {
@@ -541,11 +618,11 @@ var isDead = false;
 var isStarted = false;
 var secondsNow = 0;
 function Tick(callback) {
-   // var hour = new Date().getHours();
-   // var minutes = new Date().getMinutes();
-   // var seconds = new Date().getSeconds();
-   // var ms = new Date().getMilliseconds();
-   // console.log(hour + ':' + minutes + ':' + seconds + ':' + ms);
+    // var hour = new Date().getHours();
+    // var minutes = new Date().getMinutes();
+    // var seconds = new Date().getSeconds();
+    // var ms = new Date().getMilliseconds();
+    ////console.log(hour + ':' + minutes + ':' + seconds + ':' + ms);
     if (isDead) {
         ////console.log("Ya deeth man");
         return;
@@ -596,8 +673,12 @@ function setFood() {
         IsFull = true;
         return;
     }
-    var X = getRndInteger(0, countCols - 2);
-    var Y = getRndInteger(0, countRows - 2);
+    var X = getRndInteger(0, countCols - 1);
+    var Y = getRndInteger(0, countRows - 1);
+    if (X > countCols || Y > countRows) {
+        setFood();
+        return;
+    }
     //console.log("setFood X: " + X + " Y: " + Y);
     try {
         if (playMatrix[X][Y] == '') {
@@ -607,8 +688,8 @@ function setFood() {
         }
     }
     catch (exception) {
-        console.log("something happend in setfood");
-        console.log(exception);
+        //console.log("something happend in setfood");
+        //console.log(exception);
         //console.log(playMatrix[X].length);
         setFood();
 
@@ -633,7 +714,7 @@ function Eat() {
             playMatrix[X][Y] = '';
         }
         catch (exception) {
-            console.log("something happend in Eat");
+            //console.log("something happend in Eat");
             setFood();
         }
         score += difficulty;

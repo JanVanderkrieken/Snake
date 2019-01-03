@@ -67,6 +67,7 @@ input {
 .wall
 {
     background-color: black;
+	color: white;
 }
 
 .snakehead {

@@ -1,12 +1,14 @@
 {
   "ExpandedNodes": [
     "",
+    "\\platforms\\browser",
+    "\\platforms\\browser\\cordova",
+    "\\plugins\\cordova-plugin-battery-status\\tests",
+    "\\plugins\\cordova-plugin-battery-status\\www",
+    "\\plugins\\cordova-plugin-media\\www",
     "\\www",
     "\\www\\css",
     "\\www\\js",
-    "\\www\\res\\icon",
-    "\\www\\spec",
-    "\\www\\spec\\lib",
     "\\www\\spec\\lib\\jasmine-1.2.0"
   ],
   "SelectedNode": "\\www\\css\\index.css",
