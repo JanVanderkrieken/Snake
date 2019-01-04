@@ -127,7 +127,25 @@ var X1End = 0;
 var Y1End = 0;
 var Y2End = 0;
 var X2End = 0;
+var scoreArr = [];
+function GetCookies() {
+    scoreArr = Cookies.getJSON('score');
+    if (typeof scoreArr === 'undefined') {
+        scoreArr = [];
+        //console.log("no cookies for you");
+        return;
+    }
+    //console.log("COOOOOOOOOOOKIEEEEEEES");
+    //console.log(scoreArr);
+}
 
+function SetCookie() {
+    //console.log(scoreArr);
+
+    Cookies.set('score', scoreArr);
+    //console.log("checking cookies");
+    //console.log(Cookies.get('score'));
+}
 
 window.addEventListener('touchend', function (evt) {
     //evt.preventDefault();
@@ -290,6 +308,7 @@ window.addEventListener('touchmove', function (evt) {
 
 var tableEl = document.getElementById('screen');
 var scoreEl = document.getElementById('score');
+var highscoresEl = document.getElementById('highscores');
 var xDown = null;
 var yDown = null;
 var direction = "right";
@@ -297,7 +316,13 @@ var blockWidth = 20; //width = height
 var snakeArray = ['4,6', '4,5', '4,4'];
 var score = 0;
 
+function resetHighscores() {
+    console.log("no more cookies for you");
 
+    Cookies.remove('score');
+    scoreArr = [];
+    paintTheField();
+};
 
 function paintTheField() {
     if (isPaused) {
@@ -308,6 +333,7 @@ function paintTheField() {
 
     }
     var htmlString = '';
+    var htmlString2 = '';
     if (!isStarted && !isDead) {
         if (isMobile) {
             htmlString = '<div>Start the game with a tap on the button</br>\'zoom\' out to lower the difficulty, \'zoom\' in to raise the difficulty</br>min difficulty = 0.25, max difficulty = 5.0</br> swipe in the direction you want to go</br> NO RETURNS</div>'
@@ -319,8 +345,10 @@ function paintTheField() {
         if (isDead) {
             htmlString = '<div>You\'re <strong>dead</strong>, you can restart with a tap on the button</div>';
             isStarted = false;
+            $(highscoresEl).attr('style', 'display:table;');
         } else {
             paintSnake();
+            $(highscoresEl).attr('style', 'display:none;');
 
             for (var i = 0; i < countCols; i++) {
                 htmlString += '<tr>';
@@ -353,8 +381,28 @@ function paintTheField() {
         }
         ////console.log(htmlString);
     }
+    GetCookies();
+    if (scoreArr.length > 0) {
+        htmlString2 += '</table></br></br><table style="border-collapse:collapse;"><tr><th  style="text-align: left;" width="33%;">Highscores</th><th  style="text-align: left;" width="33%;">Difficulty</th><th  style="text-align: left;" >Last achieved</th></tr>';
+        scoreArr.forEach(function (item, index) {
+            var temp = ++index;
+            //console.log(item.score);
+            if (item.score === score && item.difficulty === difficultyTemp) {
+                htmlString2 += '<tr style="border-bottom:1pt solid black; background-color:black; color: white;"><td>' + temp + '.' + item.score + '</td><td>' + item.difficulty + '</td><td>' + item.time + '</td></tr>';
+
+            } else {
+                htmlString2 += '<tr style="border-bottom:1pt solid black;"><td>' + temp + '.' + item.score + '</td><td>' + item.difficulty + '</td><td>' + item.time + '</td></tr>';
+
+            }
+        });
+        htmlString2 += '</table><input type="button" id="resetHighscores" value="Reset the highscores"/>'
+
+    }
+
     tableEl.innerHTML = htmlString;
+    highscoresEl.innerHTML = htmlString2;
     scoreEl.innerHTML = 'Your score is: ' + score + '</br> The difficulty is: ' + difficulty.toFixed(2);
+    $('input[id="resetHighscores"]').on('click', resetHighscores);
 
 };
 
@@ -407,12 +455,16 @@ window.addEventListener('keydown', function (evt) {
             return;
             break;
     }
+    if (isPaused) {
+        direction = prevDirection;
+        prevDirection = prevDirectionTemp;
+    }
 });
 
 var isPaused = false;
-$('input').on('click', buttonClick);
+$('#btnStart').on('click', buttonClick);
 function buttonClick() {
-    $('input').blur();
+    $('#btnStart').blur();
     //console.log("is started: " + isStarted);
     ////console.log(direction);
     ////console.log("is dead " + isDead);
@@ -427,7 +479,7 @@ function buttonClick() {
         isPaused = false;
         isStarted = true;
 
-        $('input').val('Pause');
+        $('#btnStart').val('Pause');
         if (isDead) {
 
             isDead = false;
@@ -448,7 +500,7 @@ function buttonClick() {
 
         isPaused = true;
         isStarted = false;
-        $('input').val('Start');
+        $('#btnStart').val('Start');
     }
 };
 
@@ -585,15 +637,55 @@ function reDoMatrix() {
         }
     }
 }
+
+var difficultyTemp;
+
+function Dead() {
+    var isNewHighscore = true;
+    isDead = true;
+    screen.orientation.unlock();
+    $('#btnStart').val('Start');
+    if (score === 0) {
+        return;
+    }
+    var arrLength = scoreArr.length;
+    scoreArr.forEach(function (item, index) {
+        if (item.score === score && item.difficulty >= difficulty) {
+            scoreArr.splice(index, 1);
+            arrLength--;
+        } else if (item.score === score && item.difficulty < difficulty) {
+            isNewHighscore = false;
+        }
+    });
+    difficultyTemp = difficulty;
+
+    if (!isNewHighscore) {
+        return;
+    }
+    var hour = new Date().getHours();
+    var minute = new Date().getMinutes();
+    if (hour < 10) {
+        hour = '0' + hour;
+    }
+    if (minute < 10) {
+        minute = '0' + minute;
+    }
+    var datenow = new Date().toLocaleDateString() + ' ' + hour + ':' + minute;
+    scoreArr[arrLength] = { score: score, time: datenow, difficulty: difficulty };
+    scoreArr.sort(function (a, b) { return b.score - a.score; });
+    if (scoreArr.length > 10) {
+        scoreArr.splice(10);
+    }
+    SetCookie();
+
+}
+
 function EatMe() {
     for (var i = 1; i < snakeArray.length; i++) {
 
 
         if (snakeArray[0] == snakeArray[i]) {
-            isDead = true;
-            screen.orientation.unlock();
-            $('input').val('Start');
-
+            Dead();
         }
     }
 }
@@ -606,9 +698,7 @@ function paintSnake() {
         if (playMatrix[X][Y] != "wall") {
             //playMatrix[X][Y] = 'snake';
         } else {
-            isDead = true;
-            screen.orientation.unlock();
-            $('input').val('Start');
+            Dead();
 
             ////console.log("I be deeth");
         }

@@ -37,6 +37,10 @@ body {
     margin: 0px;
 }*/
 
+#highscores {
+	border-collapse:collapse;
+}
+
 #tableheader {
 	margin-bottom : -3px;
 }
