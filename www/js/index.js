@@ -110,6 +110,7 @@ var app = {
     // The scope of 'this' is the event. In order to call the 'receivedEvent'
     // function, we must explicitly call 'app.receivedEvent(...);'
     onDeviceReady: function() {
+        initGame();
         //app.receivedEvent('deviceready');
         /*console.log("me is rady");
         wWidth = window.innerWidth;

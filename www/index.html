@@ -39,6 +39,7 @@
 	<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: 'unsafe-inline' https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *" /> -->
 
 	<link rel="stylesheet" type="text/css" href="css/index.css" />
+	<link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
 	<title>Hello World</title>
 </head>
 
@@ -50,15 +51,17 @@
 
 			</td>
 			<td>
-					<input type="button" value="Start" id="btnStart" />
+					<button id="btnStart" class="waves-effect waves-light btn">Start</button>
 			</td>
 		</tr>
 	</table>
 
-	<table id='screen'></table>
+	<table id='screen' class="screen browser-default"></table>
 	<table id="highscores"></table>
 	<script type="text/javascript" src="cordova.js"></script>
+
 	<script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="js/materialize.min.js"></script>
 	<script type="text/javascript" src="js/js.cookie.js"></script>
 	<script type="text/javascript" src="js/custom.js"></script>
 	<script type="text/javascript" src="js/index.js"></script>

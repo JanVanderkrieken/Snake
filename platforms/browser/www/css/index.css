@@ -37,8 +37,8 @@ body {
     margin: 0px;
 }*/
 
-#highscores {
-	border-collapse:collapse;
+#highscores tr td {
+    padding: 5px;
 }
 
 #tableheader {
@@ -64,8 +64,18 @@ h1 {
     text-align:center;
 }
 
-input {
-	width : 100%;
+.screen{
+    border-spacing: 1px;
+    border-collapse: initial;
+    border-radius: 0px;
+    width: unset;
+}
+.screen td{
+    padding: 1px;
+    left: 20px;
+    right: 20px;
+    width: 20px;
+    height: 20px;
 }
 
 .wall
