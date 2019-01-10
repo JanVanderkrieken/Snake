@@ -39,6 +39,8 @@ function StartTheGame() {
     //console.log(screen.orientation.type);
     countRows = (wWidth - borderWidth) / blockWidth;
     countCols = (wHeight - borderHeight) / blockWidth ;
+    //countRows = 10;
+    //countCols = 10;
     counterEmptyCells = (countCols-2)*(countRows-2)
     //console.log(headEl);
     for (var i = 0; i < countCols; i++) {
@@ -414,7 +416,7 @@ function paintTheField() {
     }
 };
 
-window.addEventListener('keydown', function (evt) {
+window.addEventListener('keydown',async function (evt) {
     var prevDirectionTemp = prevDirection;
     prevDirection = direction;
     //console.log(evt.key);
@@ -516,15 +518,31 @@ function buttonClick(callback) {
 function setDirectionMove(direc) {
     switch (direc) {
         case 'left':
+        if(direc === 'right'){
+            setDirectionMove(prevDirection);
+            break;
+        }
             directionMove = '0,-1';
             break;
         case 'right':
+        if(direc === 'left'){
+            setDirectionMove(prevDirection);
+            break;
+        }
             directionMove = '0,1';
             break;
         case 'up':
+        if(direc === 'down'){
+            setDirectionMove(prevDirection);
+            break;
+        }
             directionMove = '-1,0';
             break;
         case 'down':
+        if(direc === 'up'){
+            setDirectionMove(prevDirection);
+            break;
+        }
             directionMove = '1,0';
             break;
 
@@ -545,6 +563,10 @@ function moveSnake() {
         ////console.log('first snake is ' + snakeArray.toString());
         var prevPos = '';
         var secondPos = snakeArray[1];
+        var thirdPos = snakeArray[2];
+        //console.log('pos 1 ' + snakeArray[0]);
+        //console.log('pos 2 ' +secondPos);
+        //console.log(snakeArray);
         /*if(getFirstPos(snakeArray[0]) == getFirstPos(secondPos)){
             if(getSecondPos(directionMove) != 0){
                 direction = prevDirection;
@@ -585,7 +607,7 @@ function moveSnake() {
         prevPos = snakeArray[0];
         snakeArray[0] = addPositon(snakeArray[0], directionMove, secondPos);
 
-        if (snakeArray[0] == secondPos) {
+        if (snakeArray[0] === secondPos || snakeArray[0] === thirdPos) {
             setDirectionMove(prevDirection);
             snakeArray[0] = addPositon(prevPos, directionMove, secondPos);
             
@@ -635,7 +657,7 @@ function reDoMatrix() {
    //console.log(isDead);
     playMatrix[Xfood][Yfood] = 'food';
 
-    counterEmptyCells = (countCols - 2) * (countRows - 2);
+    counterEmptyCells = (countCols - 2) * (countRows - 2) -2;
     /*for (var i = 1; i < countCols-1; i++) {
         for (var j = 1; j < countRows-1; j++) {
             if (playMatrix[i][j] != "wall" && playMatrix[i][j] != 'food') {
@@ -789,13 +811,13 @@ function Tick(callback) {
         }
         ////console.log('2');
         //callback();
-        if (isDead || isPaused) {
+        /*if (isDead || isPaused) {
 
             paintTheField();
             callback();
-        }
+        }*/
 
-        if (!isDead && !isPaused && !IsFull) {
+        if (!isDead && !isPaused && !(IsFull && prevFoodArr.length === 0)) {
             Tick(function () {  });
             //callback();
         }
