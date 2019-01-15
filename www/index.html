@@ -38,8 +38,8 @@
 	-->
 	<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: 'unsafe-inline' https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *" /> -->
 
-	<link rel="stylesheet" type="text/css" href="css/index.css" />
 	<link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+	<link rel="stylesheet" type="text/css" href="css/index.css" />
 	<title>Hello World</title>
 </head>
 
@@ -58,6 +58,19 @@
 
 	<table id='screen' class="screen browser-default"></table>
 	<table id="highscores"></table>
+	<table id="tblField">
+		<tr>
+			<td colspan="3">
+				<button id="btnSettheField" class="waves-effect waves-light btn">Change the field</button>
+			</td>
+		</tr>
+	</table>
+	<div class="range-field slider hide horizontal">
+		<input id="horizontal" type="range" min="10" class="slider-horizontal"/>
+	</div>
+	<div class="range-field slider hide vertical">
+		<input id="vertical" type="range" class="slider-vertical" min="10"/>
+	</div>
 	<script type="text/javascript" src="cordova.js"></script>
 
 	<script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>

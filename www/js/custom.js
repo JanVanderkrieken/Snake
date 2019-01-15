@@ -11,11 +11,46 @@ $(document).ready(function () {
     $('#btnStart').on('click', function(){
         buttonClick(function(){});
     });
-
+    $('#btnSettheField').on('click', function(){
+        SetTheField(function(){});
+    });
+    /*$('input[type=range]').on('input', function () {
+        $(this).trigger('change');
+    });*/
+    $('input[type=range]').on('input', function(){
+        ChangeTheField($(this),function(){});
+    });
 });
 }
 
 var isMobile = false;
+
+function ChangeTheField(evt,callback){
+    console.log(evt[0].id);
+    if(evt[0].id==='vertical'){
+        countCols = evt.val();
+    } else if(evt[0].id === 'horizontal') {
+        countRows = evt.val();
+    }
+    for (var i = 0; i < countCols; i++) {
+        playMatrix[i] = [];
+        //playMatrix[i][0] = "wall";
+        //playMatrix[i][countRows] = "wall";
+        for (var j = 0; j < countRows; j++) {
+            playMatrix[i][j] = "";
+            //playMatrix[0][i] = "wall";
+            //playMatrix[countCols][i] = "wall";
+            if (i == 0 || i == countCols - 1) {
+                playMatrix[i][j] = "wall";
+            }
+            if (j == 0 || j == countRows - 1) {
+                playMatrix[i][j] = "wall";
+            }
+        }
+    }
+
+    paintTheField();
+}
 
 function StartTheGame() {
     wWidth = window.innerWidth;
@@ -37,11 +72,15 @@ function StartTheGame() {
     //console.log(wHeight);
     //console.log(borderHeight);
     //console.log(screen.orientation.type);
-    countRows = (wWidth - borderWidth) / blockWidth;
-    countCols = (wHeight - borderHeight) / blockWidth ;
+    if(!countCols || !countRows){
+        countRows = (wWidth - borderWidth) / blockWidth;
+        countCols = (wHeight - borderHeight) / blockWidth ;
+        maxCountCols = countCols;
+        maxCountRows = countRows;
+    }
     //countRows = 10;
     //countCols = 10;
-    counterEmptyCells = (countCols-2)*(countRows-2)
+    counterEmptyCells = (countCols-2)*(countRows-2)-3;
     //console.log(headEl);
     for (var i = 0; i < countCols; i++) {
         playMatrix[i] = [];
@@ -59,15 +98,21 @@ function StartTheGame() {
             }
         }
     }
-    if (!isPaused) {
-        setFood();
-    } else {
+    if(!isSettingTheField && !isPaused){
+        playMatrix[4][6] = 'snakehead';
+        playMatrix[4][5] = 'snake';
+        playMatrix[4][4] = 'snake';
+        if (!isPaused) {
+            setFood();
+        }
+    } else if(isPaused){
         var X = getFirstPos(food);
         var Y = getSecondPos(food);
         playMatrix[X][Y] = 'food';
     }
+    
     //playMatrix[4][10] = 'food';
-    if (!isStarted) {
+    if (!isStarted && !isSettingTheField) {
     Tick(function () {
         ////console.log('1');
     });
@@ -91,6 +136,35 @@ function StartTheGame() {
 * specific language governing permissions and limitations
 * under the License.
 */
+
+function SetTheField(callback){
+    console.log('wtf');
+    if($('#btnSettheField').text()=== 'Change the field'){
+        $('#btnSettheField').addClass('replacehead');
+        $('.slider').removeClass('hide');
+        //$('#screen').addClass('hide');
+        $('#highscores').addClass('hide');
+        $('#tableheader').addClass('hide');
+        $('#btnSettheField').text('Return to Main menu');
+        isSettingTheField = true;
+        isStarted = true;
+        StartTheGame();
+        $('#vertical').val(countCols);
+        $('#horizontal').val(countRows);
+        document.getElementById("vertical").max = maxCountCols;
+        document.getElementById("horizontal").max = maxCountRows;
+    } else if($('#btnSettheField').text()=== 'Return to Main menu'){
+        $('#btnSettheField').removeClass('replacehead');
+        $('.slider').addClass('hide');
+        //$('#screen').removeClass('hide');
+        $('#highscores').removeClass('hide');
+        $('#tableheader').removeClass('hide');
+        $('#btnSettheField').text('Change the field');
+        isSettingTheField = false;
+        isStarted = false;
+    }
+    paintTheField();
+}
 
 var wWidth;
 var wHeight;
@@ -242,10 +316,12 @@ window.addEventListener('touchmove',function (evt) {
         prevDirection = direction;
 
         if (Math.abs(xDiff) > Math.abs(yDiff)) {/*most significant*/
-            if (direction == "up" || direction == "down") {
+            if (direction == "up" || direction == "down" || direction === 'nothing') {
                 if (xDiff > 0) {
-                    /* left swipe */
-                    direction = "left";
+                    if(direction !== 'nothing'){
+                        /* left swipe */
+                        direction = "left";
+                    }
                 } else {
                     /* right swipe */
                     direction = "right";
@@ -253,7 +329,7 @@ window.addEventListener('touchmove',function (evt) {
                 ////console.log("cols: " +countCols);
             }
         } else if (Math.abs(xDiff) < Math.abs(yDiff)) {
-            if (direction == "left" || direction == "right") {
+            if (direction == "left" || direction == "right" || direction === 'nothing') {
 
                 if (yDiff > 0) {
                     /* up swipe */
@@ -280,14 +356,14 @@ window.addEventListener('touchmove',function (evt) {
                 }
                 //swipe left-down
             } else if (xDiff < 0 && yDiff > 0) {
-                if (direction == "up" || direction == "down") {
+                if (direction == "up" || direction == "down" || direction === 'nothing') {
                     direction = "right";
                 } else {
                     direction = "down";
                 }
                 //swipe right-up
             } else if (xDiff < 0 && yDiff < 0) {
-                if (direction == "up" || direction == "down") {
+                if (direction == "up" || direction == "down" || direction === 'nothing') {
                     direction = "right";
                 } else {
                     direction = "down";
@@ -352,12 +428,15 @@ function paintTheField() {
             }
         } else {
             ////console.log('is started' + isStarted);
-            if (isDead) {
+            if (isDead && !isSettingTheField) {
                 htmlString = '<div>You\'re <strong>dead</strong>, you can restart with a tap on the button</div>';
                 isStarted = false;
                 $(highscoresEl).removeClass('hide');
             } else {
-                paintSnake();
+                if(!isSettingTheField){
+                    paintSnake();
+                }  
+                
                 $(highscoresEl).addClass('hide');
 
                 for (var i = 0; i < countCols; i++) {
@@ -401,7 +480,7 @@ function paintTheField() {
                     htmlString2 += '<tr class="black white-text"><td>' + temp + '.' + item.score + '</td><td>' + item.difficulty + '</td><td>' + item.time + '</td></tr>';
 
                 } else {
-                    htmlString2 += '<tr"><td>' + temp + '.' + item.score + '</td><td>' + item.difficulty + '</td><td>' + item.time + '</td></tr>';
+                    htmlString2 += '<tr><td>' + temp + '.' + item.score + '</td><td>' + item.difficulty + '</td><td>' + item.time + '</td></tr>';
 
                 }
             });
@@ -448,7 +527,7 @@ window.addEventListener('keydown',async function (evt) {
             }
             break;
         case "ArrowLeft":
-            if (direction !== 'right') {
+            if (direction !== 'right' && direction !== 'nothing') {
                 direction = 'left';
             }
             break;
@@ -473,6 +552,9 @@ window.addEventListener('keydown',async function (evt) {
 
 var isPaused = false;
 function buttonClick(callback) {
+    
+    $('#tblField').addClass('hide');
+    
     $('#btnStart').blur();
     //console.log("is started: " + isStarted);
     ////console.log(direction);
@@ -481,7 +563,7 @@ function buttonClick(callback) {
         screen.orientation.lock(screen.orientation.type);
         //console.clear(); 
         if (!isPaused) {
-            direction = 'right';
+            direction = 'nothing';
 
         }
        //console.log(isDead);
@@ -497,7 +579,7 @@ function buttonClick(callback) {
 
             setFood();
             score = 0;
-            direction = 'right';
+            direction = 'nothing';
         }
 
         //Tick(function () {
@@ -512,6 +594,10 @@ function buttonClick(callback) {
         isPaused = true;
         isStarted = false;
         $('#btnStart').text('Start');
+        if(IsFull && prevFoodArr.length === 0 && counterEmptyCells === 0){
+            isPaused = false;
+            paintTheField();
+        }
     }
 };
 
@@ -555,7 +641,7 @@ var difficulty = 3.0;
 var directionMove = '0,0';
 
 function moveSnake() {
-    if (isDead || isPaused) {
+    if (isDead || isPaused || direction === 'nothing') {
         
     } else {
         setDirectionMove(direction);
@@ -705,10 +791,12 @@ function reDoMatrix() {
 var difficultyTemp;
 
 function Dead() {
+    window.navigator.vibrate([250]);
     var isNewHighscore = true;
     isDead = true;
     screen.orientation.unlock();
     $('#btnStart').text('Start');
+    $('#tblField').removeClass('hide');
     if (score !== 0) {
         var arrLength = scoreArr.length;
         scoreArr.forEach(function (item, index) {
@@ -769,6 +857,7 @@ function paintSnake() {
 }
 var isDead = false;
 var isStarted = false;
+var isSettingTheField = false;
 var secondsNow = 0;
 function Tick(callback) {
     var start = +new Date(); 
@@ -820,6 +909,8 @@ function Tick(callback) {
         if (!isDead && !isPaused && !(IsFull && prevFoodArr.length === 0)) {
             Tick(function () {  });
             //callback();
+        } else if (IsFull && prevFoodArr.length === 0){
+            $('#btnStart').text('Main menu');
         }
     }, timeDivDifficulty);
 }
@@ -883,6 +974,7 @@ function Eat() {
         if(!IsFull){
             //console.log('im full');
             setFood();
+        } else if (IsFull && prevFoodArr.length===0){
         }
     }
 }
